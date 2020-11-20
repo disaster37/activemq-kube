@@ -33,7 +33,7 @@ RUN rm -rf  /tmp/* /var/tmp/*
 
 WORKDIR /opt/activemq
 USER activemq
-EXPOSE ["61616", "5672", "61613", "1883", "61614"]
+EXPOSE 61616 5672 61613 1883 61614
 
 VOLUME ["/opt/activemq/data", "/opt/activemq/log"]
 CMD ["/opt/activemq/bin/activemq", "console"]
