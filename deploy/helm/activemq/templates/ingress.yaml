@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: {{ template "activemq.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "activemq.fullname" . }}
+  labels: {{ include "activemq.labels" . | nindent 4 }}
+{{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.ingress.tls }}
+  tls:
+{{ toYaml .Values.ingress.tls | indent 4 }}
+{{- end }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path }}
+            backend:
+              serviceName: {{ include "activemq.fullname" . }}
+              servicePort: {{ .Values.service.port }}
+  {{- end }}
+{{- end }}

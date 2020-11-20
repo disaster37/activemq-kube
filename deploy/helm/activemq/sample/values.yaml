@@ -1,0 +1,346 @@
+configMaps:
+  activemq.xml: |-
+    <!--
+        Licensed to the Apache Software Foundation (ASF) under one or more
+        contributor license agreements.  See the NOTICE file distributed with
+        this work for additional information regarding copyright ownership.
+        The ASF licenses this file to You under the Apache License, Version 2.0
+        (the "License"); you may not use this file except in compliance with
+        the License.  You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.
+    -->
+    <!-- START SNIPPET: example -->
+    <beans
+      xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+        <!-- Allows us to use system properties as variables in this configuration file -->
+        <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+            <property name="locations">
+                <value>file:${activemq.conf}/credentials.properties</value>
+            </property>
+        </bean>
+
+       <!-- Allows accessing the server log -->
+        <bean id="logQuery" class="io.fabric8.insight.log.log4j.Log4jLogQuery"
+              lazy-init="false" scope="singleton"
+              init-method="start" destroy-method="stop">
+        </bean>
+
+        <!--
+            The <broker> element is used to configure the ActiveMQ broker.
+        -->
+        <broker xmlns="http://activemq.apache.org/schema/core" brokerName="localhost" dataDirectory="/opt/activemq/data">
+
+            <destinationPolicy>
+                <policyMap>
+                  <policyEntries>
+                    <policyEntry topic=">" >
+                        <!-- The constantPendingMessageLimitStrategy is used to prevent
+                             slow topic consumers to block producers and affect other consumers
+                             by limiting the number of messages that are retained
+                             For more information, see:
+
+                             http://activemq.apache.org/slow-consumer-handling.html
+
+                        -->
+                      <pendingMessageLimitStrategy>
+                        <constantPendingMessageLimitStrategy limit="1000"/>
+                      </pendingMessageLimitStrategy>
+                    </policyEntry>
+                  </policyEntries>
+                </policyMap>
+            </destinationPolicy>
+
+
+            <!--
+                The managementContext is used to configure how ActiveMQ is exposed in
+                JMX. By default, ActiveMQ uses the MBean server that is started by
+                the JVM. For more information, see:
+
+                http://activemq.apache.org/jmx.html
+            -->
+            <managementContext>
+                <managementContext createConnector="false"/>
+            </managementContext>
+
+            <!--
+                Configure message persistence for the broker. The default persistence
+                mechanism is the KahaDB store (identified by the kahaDB tag).
+                For more information, see:
+
+                http://activemq.apache.org/persistence.html
+            -->
+            <persistenceAdapter>
+                <kahaDB directory="/opt/activemq/data/kahadb"/>
+            </persistenceAdapter>
+
+
+              <!--
+                The systemUsage controls the maximum amount of space the broker will
+                use before disabling caching and/or slowing down producers. For more information, see:
+                http://activemq.apache.org/producer-flow-control.html
+              -->
+              <systemUsage>
+                <systemUsage>
+                    <memoryUsage>
+                        <memoryUsage percentOfJvmHeap="70" />
+                    </memoryUsage>
+                    <storeUsage>
+                        <storeUsage limit="10 gb"/>
+                    </storeUsage>
+                    <tempUsage>
+                        <tempUsage limit="10 gb"/>
+                    </tempUsage>
+                </systemUsage>
+            </systemUsage>
+
+            <!--
+                The transport connectors expose ActiveMQ over a given protocol to
+                clients and other brokers. For more information, see:
+
+                http://activemq.apache.org/configuring-transports.html
+            -->
+            <transportConnectors>
+                <!-- DOS protection, limit concurrent connections to 1000 and frame size to 100MB -->
+                <transportConnector name="openwire" uri="tcp://0.0.0.0:61616?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+                <transportConnector name="amqp" uri="amqp://0.0.0.0:5672?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+                <transportConnector name="stomp" uri="stomp://0.0.0.0:61613?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+                <transportConnector name="mqtt" uri="mqtt://0.0.0.0:1883?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+                <transportConnector name="ws" uri="ws://0.0.0.0:61614?maximumConnections=1000&amp;wireFormat.maxFrameSize=104857600"/>
+            </transportConnectors>
+
+            <!-- destroy the spring context on shutdown to stop jetty -->
+            <shutdownHooks>
+                <bean xmlns="http://www.springframework.org/schema/beans" class="org.apache.activemq.hooks.SpringContextHook" />
+            </shutdownHooks>
+
+            <!-- Plugin to manage user and role -->
+            <plugins>
+                    <jaasAuthenticationPlugin configuration="activemq" />
+                    <authorizationPlugin>
+                            <map>
+                                    <authorizationMap>
+                                            <authorizationEntries>
+                                                    <authorizationEntry topic=">"
+                                                                                read="admins"
+                                                                                write="admins"
+                                                                                admin="admins" />
+                                                    <authorizationEntry queue=">"
+                                                                                read="admins"
+                                                                                write="admins"
+                                                                                admin="admins" />
+
+                                                    <authorizationEntry topic="ActiveMQ.Advisory.>"
+                                                                                read="users"
+                                                                                write="users"
+                                                                                admin="users" />
+
+                                                    <authorizationEntry queue="ActiveMQ.Advisory.>"
+                                                                                read="users"
+                                                                                write="users"
+                                                                                admin="users"/>
+
+                                                    <authorizationEntry topic="inventory.>"
+                                                                                read="inventoryConsumers"
+                                                                                write="inventoryPublishers"
+                                                                                admin="inventoryPublishers"/>
+                                                    <authorizationEntry queue="inventory.>"
+                                                                                read="inventoryConsumers"
+                                                                                write="inventoryPublishers"
+                                                                                admin="inventoryPublishers"/>
+                                                    <authorizationEntry topic="backup.>"
+                                                                                read="backupConsumers"
+                                                                                write="backupPublishers"
+                                                                                admin="backupPublishers"/>
+                                                    <authorizationEntry queue="backup.>"
+                                                                                read="backupConsumers"
+                                                                                write="backupPublishers"
+                                                                                admin="backupPublishers"/>
+                                                    <authorizationEntry queue="esb.>"
+                                                                                read="esbConsumers"
+                                                                                write="esbPublishers"
+                                                                                admin="esbPublishers"/>
+                                            </authorizationEntries>
+                                    </authorizationMap>
+                            </map>
+                    </authorizationPlugin>
+            </plugins>
+
+            <destinations>
+                    <topic physicalName="inventory.kace" />
+                    <topic physicalName="inventory.dbfake" />
+                    <topic physicalName="inventory.db" />
+                    <topic physicalName="backup.tsm" />
+                    <topic physicalName="backup.vranger" />
+                    <topic physicalName="backup.netvault" />
+                    <topic physicalName="backup.events" />
+
+                    <queue physicalName="inventory.kace" />
+                    <queue physicalName="backup.tsm" />
+                    <queue physicalName="backup.vranger" />
+                    <queue physicalName="backup.netvault" />
+                    <queue physicalName="backup.events" />
+                    <queue physicalName="esb.log" />
+
+                    <queue physicalName="backup.tsm.ppd" />
+                    <queue physicalName="backup.vranger.ppd" />
+                    <queue physicalName="backup.netvault.ppd" />
+            </destinations>
+
+            <!-- Temp rules
+            <destinationInterceptors>
+                    <virtualDestinationInterceptor>
+                            <virtualDestinations>
+                                    <compositeQueue name="backup.vranger" forwardOnly="false">
+                                            <forwardTo>
+                                                    <queue physicalName="backup.vranger.ppd"/>
+                                            </forwardTo>
+                                    </compositeQueue>
+                                    <compositeQueue name="backup.tsm" forwardOnly="false">
+                                            <forwardTo>
+                                                    <queue physicalName="backup.tsm.ppd"/>
+                                            </forwardTo>
+                                    </compositeQueue>
+                                    <compositeQueue name="backup.netvault" forwardOnly="false">
+                                            <forwardTo>
+                                                    <queue physicalName="backup.netvault.ppd"/>
+                                            </forwardTo>
+                                    </compositeQueue>
+                            </virtualDestinations>
+                    </virtualDestinationInterceptor>
+            </destinationInterceptors>
+            -->
+
+        </broker>
+
+        <!--
+            Enable web consoles, REST and Ajax APIs and demos
+            The web consoles requires by default login, you can disable this in the jetty.xml file
+
+            Take a look at ${ACTIVEMQ_HOME}/conf/jetty.xml for more details
+        -->
+        <import resource="jetty.xml"/>
+
+    </beans>
+    <!-- END SNIPPET: example -->
+  jetty.xml: "<!--\n        Licensed to the Apache Software Foundation (ASF) under
+    one or more contributor\n        license agreements. See the NOTICE file distributed
+    with this work for additional\n        information regarding copyright ownership.
+    The ASF licenses this file to You under\n        the Apache License, Version 2.0
+    (the \"License\"); you may not use this file except in\n        compliance with
+    the License. You may obtain a copy of the License at\n\n        http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or\n        agreed to in writing, software distributed
+    under the License is distributed on an\n        \"AS IS\" BASIS, WITHOUT WARRANTIES
+    OR CONDITIONS OF ANY KIND, either express or\n        implied. See the License
+    for the specific language governing permissions and\n        limitations under
+    the License.\n    -->\n    <!--\n        An embedded servlet engine for serving
+    up the Admin consoles, REST and Ajax APIs and\n        some demos Include this
+    file in your configuration to enable ActiveMQ web components\n        e.g. <import
+    resource=\"jetty.xml\"/>\n    -->\n<beans xmlns=\"http://www.springframework.org/schema/beans\"
+    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd\">\n\n    <bean id=\"securityLoginService\"
+    class=\"org.eclipse.jetty.security.HashLoginService\">\n        <property name=\"name\"
+    value=\"ActiveMQRealm\" />\n        <property name=\"config\" value=\"${activemq.conf}/jetty-realm.properties\"
+    />\n    </bean>\n\n    <bean id=\"securityConstraint\" class=\"org.eclipse.jetty.util.security.Constraint\">\n
+    \       <property name=\"name\" value=\"BASIC\" />\n        <property name=\"roles\"
+    value=\"user,admin\" />\n        <!-- set authenticate=false to disable login
+    -->\n        <property name=\"authenticate\" value=\"true\" />\n    </bean>\n
+    \   <bean id=\"adminSecurityConstraint\" class=\"org.eclipse.jetty.util.security.Constraint\">\n
+    \       <property name=\"name\" value=\"BASIC\" />\n        <property name=\"roles\"
+    value=\"admin\" />\n         <!-- set authenticate=false to disable login -->\n
+    \       <property name=\"authenticate\" value=\"true\" />\n    </bean>\n    <bean
+    id=\"securityConstraintMapping\" class=\"org.eclipse.jetty.security.ConstraintMapping\">\n
+    \       <property name=\"constraint\" ref=\"securityConstraint\" />\n        <property
+    name=\"pathSpec\" value=\"/*,/api/*,/admin/*,*.jsp\" />\n    </bean>\n    <bean
+    id=\"adminSecurityConstraintMapping\" class=\"org.eclipse.jetty.security.ConstraintMapping\">\n
+    \       <property name=\"constraint\" ref=\"adminSecurityConstraint\" />\n        <property
+    name=\"pathSpec\" value=\"*.action\" />\n    </bean>\n    \n    <bean id=\"rewriteHandler\"
+    class=\"org.eclipse.jetty.rewrite.handler.RewriteHandler\">\n        <property
+    name=\"rules\">\n            <list>\n                <bean id=\"header\" class=\"org.eclipse.jetty.rewrite.handler.HeaderPatternRule\">\n
+    \                 <property name=\"pattern\" value=\"*\"/>\n                  <property
+    name=\"name\" value=\"X-FRAME-OPTIONS\"/>\n                  <property name=\"value\"
+    value=\"SAMEORIGIN\"/>\n                </bean>\n                <bean id=\"header\"
+    class=\"org.eclipse.jetty.rewrite.handler.HeaderPatternRule\">\n                  <property
+    name=\"pattern\" value=\"*\"/>\n                  <property name=\"name\" value=\"X-XSS-Protection\"/>\n
+    \                 <property name=\"value\" value=\"1; mode=block\"/>\n                </bean>\n
+    \               <bean id=\"header\" class=\"org.eclipse.jetty.rewrite.handler.HeaderPatternRule\">\n
+    \                 <property name=\"pattern\" value=\"*\"/>\n                  <property
+    name=\"name\" value=\"X-Content-Type-Options\"/>\n                  <property
+    name=\"value\" value=\"nosniff\"/>\n                </bean>\n            </list>\n
+    \       </property>\n    </bean>\n    \n        <bean id=\"secHandlerCollection\"
+    class=\"org.eclipse.jetty.server.handler.HandlerCollection\">\n                <property
+    name=\"handlers\">\n                        <list>\n                    <ref bean=\"rewriteHandler\"/>\n
+    \                               <bean class=\"org.eclipse.jetty.webapp.WebAppContext\">\n
+    \                                       <property name=\"contextPath\" value=\"/admin\"
+    />\n                                        <property name=\"resourceBase\" value=\"${activemq.home}/webapps/admin\"
+    />\n                                        <property name=\"logUrlOnStart\" value=\"true\"
+    />\n                                </bean>\n                                <bean
+    class=\"org.eclipse.jetty.webapp.WebAppContext\">\n                                        <property
+    name=\"contextPath\" value=\"/api\" />\n                                        <property
+    name=\"resourceBase\" value=\"${activemq.home}/webapps/api\" />\n                                        <property
+    name=\"logUrlOnStart\" value=\"true\" />\n                                </bean>\n
+    \                               <bean class=\"org.eclipse.jetty.server.handler.ResourceHandler\">\n
+    \                                       <property name=\"directoriesListed\" value=\"false\"
+    />\n                                        <property name=\"welcomeFiles\">\n
+    \                                               <list>\n                                                        <value>index.html</value>\n
+    \                                               </list>\n                                        </property>\n
+    \                                       <property name=\"resourceBase\" value=\"${activemq.home}/webapps/\"
+    />\n                                </bean>\n                                <bean
+    id=\"defaultHandler\" class=\"org.eclipse.jetty.server.handler.DefaultHandler\">\n
+    \                                       <property name=\"serveIcon\" value=\"false\"
+    />\n                                </bean>\n                        </list>\n
+    \               </property>\n        </bean>    \n    <bean id=\"securityHandler\"
+    class=\"org.eclipse.jetty.security.ConstraintSecurityHandler\">\n        <property
+    name=\"loginService\" ref=\"securityLoginService\" />\n        <property name=\"authenticator\">\n
+    \           <bean class=\"org.eclipse.jetty.security.authentication.BasicAuthenticator\"
+    />\n        </property>\n        <property name=\"constraintMappings\">\n            <list>\n
+    \               <ref bean=\"adminSecurityConstraintMapping\" />\n                <ref
+    bean=\"securityConstraintMapping\" />\n            </list>\n        </property>\n
+    \       <property name=\"handler\" ref=\"secHandlerCollection\" />\n    </bean>\n\n
+    \   <bean id=\"contexts\" class=\"org.eclipse.jetty.server.handler.ContextHandlerCollection\">\n
+    \   </bean>\n\n    <bean id=\"jettyPort\" class=\"org.apache.activemq.web.WebConsolePort\"
+    init-method=\"start\">\n             <!-- the default port number for the web
+    console -->\n        <property name=\"host\" value=\"0.0.0.0\"/>\n        <property
+    name=\"port\" value=\"8161\"/>\n    </bean>\n\n    <bean id=\"Server\" depends-on=\"jettyPort\"
+    class=\"org.eclipse.jetty.server.Server\"\n        destroy-method=\"stop\">\n\n
+    \       <property name=\"handler\">\n            <bean id=\"handlers\" class=\"org.eclipse.jetty.server.handler.HandlerCollection\">\n
+    \               <property name=\"handlers\">\n                    <list>\n                        <ref
+    bean=\"contexts\" />\n                        <ref bean=\"securityHandler\" />\n
+    \                   </list>\n                </property>\n            </bean>\n
+    \       </property>\n\n    </bean>\n\n    <bean id=\"invokeConnectors\" class=\"org.springframework.beans.factory.config.MethodInvokingFactoryBean\">\n
+    \       <property name=\"targetObject\" ref=\"Server\" />\n        <property name=\"targetMethod\"
+    value=\"setConnectors\" />\n        <property name=\"arguments\">\n        <list>\n
+    \               <bean id=\"Connector\" class=\"org.eclipse.jetty.server.ServerConnector\">\n
+    \                       <constructor-arg ref=\"Server\" />\n                    <!--
+    see the jettyPort bean -->\n                   <property name=\"host\" value=\"#{systemProperties['jetty.host']}\"
+    />\n                   <property name=\"port\" value=\"#{systemProperties['jetty.port']}\"
+    />\n               </bean>\n                <!--\n                    Enable this
+    connector if you wish to use https with web console\n                -->\n                <!--
+    bean id=\"SecureConnector\" class=\"org.eclipse.jetty.server.ServerConnector\">\n
+    \                                       <constructor-arg ref=\"Server\" />\n                                        <constructor-arg>\n
+    \                                               <bean id=\"handlers\" class=\"org.eclipse.jetty.util.ssl.SslContextFactory\">\n\n
+    \                                                       <property name=\"keyStorePath\"
+    value=\"${activemq.conf}/broker.ks\" />\n                                                        <property
+    name=\"keyStorePassword\" value=\"password\" />\n                                                </bean>\n
+    \                                       </constructor-arg>\n                                        <property
+    name=\"port\" value=\"8162\" />\n                                </bean -->\n
+    \           </list>\n        </property>\n    </bean>\n\n        <bean id=\"configureJetty\"
+    class=\"org.springframework.beans.factory.config.MethodInvokingFactoryBean\">\n
+    \               <property name=\"staticMethod\" value=\"org.apache.activemq.web.config.JspConfigurer.configureJetty\"
+    />\n                <property name=\"arguments\">\n                        <list>\n
+    \                               <ref bean=\"Server\" />\n                                <ref
+    bean=\"secHandlerCollection\" />\n                        </list>\n                </property>\n
+    \       </bean>\n    \n    <bean id=\"invokeStart\" class=\"org.springframework.beans.factory.config.MethodInvokingFactoryBean\"
+    \n        depends-on=\"configureJetty, invokeConnectors\">\n        <property
+    name=\"targetObject\" ref=\"Server\" />\n        <property name=\"targetMethod\"
+    value=\"start\" />  \n    </bean>\n    \n    \n</beans>"
