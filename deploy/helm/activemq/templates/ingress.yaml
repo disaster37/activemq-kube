@@ -21,6 +21,6 @@ spec:
           - path: {{ .Values.ingress.path }}
             backend:
               serviceName: {{ include "activemq.fullname" . }}
-              servicePort: {{ .Values.service.port }}
+              servicePort: 8161
   {{- end }}
 {{- end }}

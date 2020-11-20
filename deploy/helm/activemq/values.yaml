@@ -6,7 +6,7 @@ replicas: 1
 #
 # Note that when overriding jetty.xml, `<property name="host" value="0.0.0.0"/>` should always be included
 # to make default probes work.
-configmap: {}
+configMap: {}
 #  activemq.xml: |
 #    <broker> </broker>
 #  jetty.xml: |
@@ -39,7 +39,7 @@ secrets: []
 secretMounts: []
 #  - name: credentials
 #    secretName: "credentials.properties"
-#    mountPath: "/opt/activemq/conf/credentials.properties"
+#    path: "/opt/activemq/conf/credentials.properties"
 #    subPath: "credentials.properties"
 
 image: "webcenter/activemq-kube"

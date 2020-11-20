@@ -109,8 +109,8 @@ spec:
           secret:
             secretName: {{ .secretName }}
         {{- end }}
-        {{- if .Values.configmap }}
-        - name: config
+        {{- if .Values.configMap }}
+        - name: activemqconfig
           configMap:
             name: {{ template "activemq.fullname" . }}-config
         {{- end }}
@@ -179,9 +179,9 @@ spec:
             subPath: {{ .subPath }}
             {{- end }}
           {{- end }}
-          {{- range $path, $config := .Values.configmap }}
+          {{- range $path, $config := .Values.configMap }}
           - name: activemqconfig
-            mountPath: /opt/activemq/conf{{ $path }}
+            mountPath: /opt/activemq/conf/{{ $path }}
             subPath: {{ $path }}
           {{- end -}}
         {{- if .Values.extraVolumeMounts }}
