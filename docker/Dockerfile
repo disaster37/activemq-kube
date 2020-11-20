@@ -25,7 +25,8 @@ RUN \
     mv apache-activemq-* /opt/activemq &&\
     groupadd --gid ${GID} activemq && \
     useradd -c "User for activemq" -d /opt/activemq -m -g activemq -s /bin/bash -u ${UID} activemq &&\
-    chown -R activemq:activemq /opt/activemq
+    chown -R activemq:activemq /opt/activemq &&\
+    sed -i 's/<property name="host" value=".*"/>/<property name="host" value="0.0.0.0"/>/g' /opt/activemq/conf/jetty.xml
 
 
 # Clean image
