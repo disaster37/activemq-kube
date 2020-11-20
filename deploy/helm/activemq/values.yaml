@@ -173,8 +173,7 @@ terminationGracePeriod: 120
 #      - localhost:9600
 
 livenessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: console
   initialDelaySeconds: 300
   periodSeconds: 10
@@ -183,8 +182,7 @@ livenessProbe:
   successThreshold: 1
 
 readinessProbe:
-  httpGet:
-    path: /
+  tcpSocket:
     port: console
   initialDelaySeconds: 60
   periodSeconds: 10
@@ -217,19 +215,14 @@ service:
   ports:
     - name: openwire
       port: 61613
-      protocol: TCP
     - name: stomp
       port: 61613
-      protocol: TCP
     - name: amqp
       port: 5672
-      protocol: TCP
     - name: mqtt
       port: 1883
-      protocol: TCP
     - name: ws
       port: 61614
-      protocol: TCP
 
 ingress:
   enabled: false

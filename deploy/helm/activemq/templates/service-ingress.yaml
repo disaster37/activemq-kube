@@ -1,7 +1,8 @@
+{{- if .Values.ingress.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "activemq.fullname" . }}
+  name: {{ template "activemq.fullname" . }}-ingress
   labels: {{ include "activemq.labels" . | nindent 4 }}
 {{- if .Values.service.labels }}
 {{ toYaml .Values.service.labels | indent 4}}
@@ -11,17 +12,12 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   selector:
     release: {{ .Release.Name | quote }}
     chart: "{{ .Chart.Name }}"
     app: {{ template "activemq.fullname" . }}
-{{- if .Values.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
-{{- end }}
-{{- with .Values.service.loadBalancerSourceRanges }}
-  loadBalancerSourceRanges:
-{{ toYaml . | indent 4 }}
-{{- end }}
   ports:
-{{ toYaml .Values.service.ports | indent 4 }}
+    - name: console
+      port: 8161
+{{- end -}}

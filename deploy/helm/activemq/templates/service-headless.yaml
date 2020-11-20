@@ -16,5 +16,5 @@ spec:
   selector:
     app: "{{ template "activemq.fullname" . }}"
   ports:
-    - name: http
+    - name: console
       port: 8161

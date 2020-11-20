@@ -1,8 +1,10 @@
 {{- if .Values.ingress.enabled -}}
+{{- $fullName := include "activemq.fullname" . -}}
+{{- $ingressPath := .Values.ingress.path -}}
 apiVersion: {{ template "activemq.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
-  name: {{ include "activemq.fullname" . }}
+  name: {{ $fullName }}
   labels: {{ include "activemq.labels" . | nindent 4 }}
 {{- with .Values.ingress.annotations }}
   annotations:
@@ -18,9 +20,9 @@ spec:
     - host: {{ . }}
       http:
         paths:
-          - path: {{ .Values.ingress.path }}
+          - path: {{ $ingressPath }}
             backend:
-              serviceName: {{ include "activemq.fullname" . }}
+              serviceName: {{ $fullName }}-ingress
               servicePort: 8161
   {{- end }}
 {{- end }}
