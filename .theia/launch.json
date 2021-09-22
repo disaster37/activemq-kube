@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "type": "bashdb",
+        "request": "launch",
+        "name": "Bash-Debug main.sh",
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}/bash/main.sh"
+    }
+]
+}

@@ -1,4 +1,4 @@
-FROM centos:7
+FROM redhat/ubi8-minimal:8.4
 
 ARG http_proxy
 ARG https_proxy
@@ -14,12 +14,12 @@ ENV \
 
 # Install extra package
 RUN \
-  yum -y install java-1.8.0-openjdk-headless curl &&\
-  yum -y clean all
+  microdnf -y install java-1.8.0-openjdk-headless curl tar gzip bash shadow-utils &&\
+  microdnf -y clean all
 
 # Install ActiveMQ
 RUN \
-    curl -L http://apache.crihan.fr/dist//activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz -o /tmp/activemq.tar.gz &&\
+    curl -L https://archive.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz -o /tmp/activemq.tar.gz &&\
     cd /tmp &&\
     tar -xvzf activemq.tar.gz &&\
     mv apache-activemq-* /opt/activemq &&\
