@@ -1,0 +1,86 @@
+name: 'release'
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+  
+
+jobs:
+  # The "build" workflow
+  lint-test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      
+      - name: Lint chart
+        run: helm lint
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+
+      - name: Install chart
+        run: |
+          helm install activemq . -n activemq --create-namespace --wait
+
+  publish-pr:
+    needs: [lint-test]
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: activemq
+      - name: Update chart version
+        run: |
+          #!/bin/sh
+          sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
+        
+      - uses: goodsmileduck/helm-push-action@v3.3.1
+        env:
+          SOURCE_DIR: '.'
+          CHART_FOLDER: 'activemq'
+          FORCE: 'True'
+          CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
+          CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
+          CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
+
+  publish:
+    needs: [lint-test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: activemq
+      - uses: goodsmileduck/helm-push-action@v3.3.1
+        env:
+          SOURCE_DIR: '.'
+          CHART_FOLDER: 'activemq'
+          FORCE: 'True'
+          CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
+          CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
+          CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
+      
+
+
+
+
+   
