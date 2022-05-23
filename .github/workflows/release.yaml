@@ -52,10 +52,10 @@ jobs:
           cd deploy/helm
           sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
         
-      - uses: goodsmileduck/helm-push-action@v3.3.1
+      - uses: goodsmileduck/helm-push-action@v3.7.2
         env:
-          SOURCE_DIR: '.'
-          CHART_FOLDER: 'deploy/helm/activemq'
+          SOURCE_DIR: 'deploy/helm'
+          CHART_FOLDER: 'activemq'
           FORCE: 'True'
           CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
           CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
@@ -67,10 +67,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
-      - uses: goodsmileduck/helm-push-action@v3.3.1
+      - uses: goodsmileduck/helm-push-action@v3.7.2
         env:
-          SOURCE_DIR: '.'
-          CHART_FOLDER: 'deploy/helm/activemq'
+          SOURCE_DIR: 'deploy/helm'
+          CHART_FOLDER: 'activemq'
           FORCE: 'True'
           CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
           CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
