@@ -11,35 +11,6 @@ on:
   
 
 jobs:
-  # The "build" workflow
-  lint-test:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.4.0
-      
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      
-      - name: Lint chart
-        run:  helm lint deploy/helm/activemq
-
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.2.0
-
-      - name: Install chart
-        run: |
-          helm install activemq deploy/helm/activemq -n activemq --create-namespace --wait
-  
   release_docker_image:
     runs-on: ubuntu-latest
     steps:
@@ -76,6 +47,7 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=sha
+            type=raw,value=test
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -86,6 +58,40 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  lint-test:
+    needs: [release_docker_image]
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      
+      - name: Lint chart
+        run:  helm lint deploy/helm/activemq
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.2.0
+
+      - name: Install chart
+        run: |
+          #!/bin/sh
+          cd deploy/helm
+          sed -i -E 's/imageTag:(.*)/imageTag: test/g' activemq/values.yaml
+          helm install activemq activemq -n activemq --create-namespace --wait
+  
+  
 
   publish-pr:
     needs: [lint-test, release_docker_image]
