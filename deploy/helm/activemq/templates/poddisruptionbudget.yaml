@@ -1,6 +1,6 @@
 ---
 {{- if .Values.maxUnavailable }}
-apiVersion: policy/v1beta1
+apiVersion: {{ template "activemq.pdb.apiVersion" .}}
 kind: PodDisruptionBudget
 metadata:
   name: "{{ template "activemq.fullname" . }}-pdb"
