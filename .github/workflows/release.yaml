@@ -31,14 +31,14 @@ jobs:
           python-version: 3.7
       
       - name: Lint chart
-        run: helm lint
+        run:  helm lint deploy/helm/activemq
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.2.0
 
       - name: Install chart
         run: |
-          helm install activemq . -n activemq --create-namespace --wait
+          helm install activemq deploy/helm/activemq -n activemq --create-namespace --wait
 
   publish-pr:
     needs: [lint-test]
@@ -46,17 +46,16 @@ jobs:
     if: (github.event_name == 'pull_request')
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: activemq
       - name: Update chart version
         run: |
           #!/bin/sh
+          cd deploy/helm
           sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
         
       - uses: goodsmileduck/helm-push-action@v3.3.1
         env:
           SOURCE_DIR: '.'
-          CHART_FOLDER: 'activemq'
+          CHART_FOLDER: 'deploy/helm/activemq'
           FORCE: 'True'
           CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
           CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
@@ -68,12 +67,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
-        with:
-          path: activemq
       - uses: goodsmileduck/helm-push-action@v3.3.1
         env:
           SOURCE_DIR: '.'
-          CHART_FOLDER: 'activemq'
+          CHART_FOLDER: 'deploy/helm/activemq'
           FORCE: 'True'
           CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
           CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
