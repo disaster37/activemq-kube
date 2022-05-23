@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal:8.4
+FROM redhat/ubi8-minimal:8.6
 
 ARG http_proxy
 ARG https_proxy
@@ -7,14 +7,14 @@ ARG https_proxy
 
 # Application settings
 ENV \
-    ACTIVEMQ_VERSION=5.16.0 \
+    ACTIVEMQ_VERSION=5.17.1 \
     UID=1000 \
     GID=1000 \
-    JAVA_HOME=/usr/lib/jvm/jre-1.8.0
+    JAVA_HOME=/usr/lib/jvm/jre-17-openjdk
 
 # Install extra package
 RUN \
-  microdnf -y install java-1.8.0-openjdk-headless curl tar gzip bash shadow-utils &&\
+  microdnf -y install java-17-openjdk-headless curl tar gzip bash shadow-utils &&\
   microdnf -y clean all
 
 # Install ActiveMQ

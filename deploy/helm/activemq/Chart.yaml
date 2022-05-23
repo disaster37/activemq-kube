@@ -4,7 +4,7 @@ home: github.com/hm-it/activemq
 maintainers:
   - name: disaster37
 name: activemq
-version: 5.16.1
-appVersion: 5.16.0
+version: 5.17.1
+appVersion: 5.17.1
 sources:
   - https://github.com/disaster37/activemq-helm
