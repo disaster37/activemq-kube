@@ -214,7 +214,7 @@ service:
   type: ClusterIP
   ports:
     - name: openwire
-      port: 61613
+      port: 61616
     - name: stomp
       port: 61613
     - name: amqp
