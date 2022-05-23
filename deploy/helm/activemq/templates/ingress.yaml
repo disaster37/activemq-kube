@@ -23,7 +23,9 @@ spec:
           - path: {{ $ingressPath }}
             pathType: Prefix
             backend:
-              serviceName: {{ $fullName }}-ingress
-              servicePort: 8161
+              service:
+                name: {{ $fullName }}-ingress
+                port:
+                  number: 8161
   {{- end }}
 {{- end }}
