@@ -107,6 +107,7 @@ jobs:
           #!/bin/sh
           cd deploy/helm
           sed -i -E 's/imageTag:(.*)/imageTag: test/g' activemq/values.yaml
+          sed -i -E 's/imagePullPolicy:(.*)/imagePullPolicy: Always/g' activemq/values.yaml
           helm install activemq activemq -n activemq --create-namespace --wait
 
   publish-pr:
