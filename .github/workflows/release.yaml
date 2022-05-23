@@ -98,6 +98,7 @@ jobs:
           #!/bin/sh
           cd deploy/helm
           sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
+          sed -i -E 's/imageTag:(.*)/imageTag: pr-${{ github.event.pull_request.number }}/g' activemq/values.yaml
         
       - uses: goodsmileduck/helm-push-action@v3.3.1
         env:
