@@ -10,7 +10,7 @@ ENV \
     ACTIVEMQ_VERSION=5.17.1 \
     UID=1000 \
     GID=1000 \
-    JAVA_HOME=/usr/lib/jvm/jre-1.8.0
+    JAVA_HOME=/usr/lib/jvm/jre-17-openjdk
 
 # Install extra package
 RUN \
