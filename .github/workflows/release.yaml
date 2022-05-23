@@ -52,7 +52,7 @@ jobs:
           cd deploy/helm
           sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
         
-      - uses: goodsmileduck/helm-push-action@v3.7.2
+      - uses: goodsmileduck/helm-push-action@v3.3.1
         env:
           SOURCE_DIR: 'deploy/helm'
           CHART_FOLDER: 'activemq'
@@ -67,7 +67,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
-      - uses: goodsmileduck/helm-push-action@v3.7.2
+      - uses: goodsmileduck/helm-push-action@v3.3.1
         env:
           SOURCE_DIR: 'deploy/helm'
           CHART_FOLDER: 'activemq'
