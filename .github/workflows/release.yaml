@@ -39,9 +39,56 @@ jobs:
       - name: Install chart
         run: |
           helm install activemq deploy/helm/activemq -n activemq --create-namespace --wait
+  
+  release_docker_image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+      - name: Set up Docker Buildx
+        id: buildx
+        uses:  docker/setup-buildx-action@v1
+        with:
+          version: "v0.5.1"
+      - name: Builder instance name
+        run: echo ${{ steps.buildx.outputs.name }}
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            webcenter/activemq-kube
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=sha
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   publish-pr:
-    needs: [lint-test]
+    needs: [lint-test, release_docker_image]
     runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request')
     steps:
@@ -62,7 +109,7 @@ jobs:
           CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
 
   publish:
-    needs: [lint-test]
+    needs: [lint-test, release_docker_image]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:

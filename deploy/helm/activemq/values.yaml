@@ -43,7 +43,7 @@ secretMounts: []
 #    subPath: "credentials.properties"
 
 image: "webcenter/activemq-kube"
-imageTag: "5.16.0-1"
+imageTag: "5.17.1"
 imagePullPolicy: "IfNotPresent"
 imagePullSecrets: []
 

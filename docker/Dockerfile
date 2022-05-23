@@ -7,7 +7,7 @@ ARG https_proxy
 
 # Application settings
 ENV \
-    ACTIVEMQ_VERSION=5.16.0 \
+    ACTIVEMQ_VERSION=5.17.1 \
     UID=1000 \
     GID=1000 \
     JAVA_HOME=/usr/lib/jvm/jre-1.8.0
