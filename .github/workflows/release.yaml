@@ -129,7 +129,7 @@ jobs:
           username: ${{ github.actor }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           force: true
-          chart-folder: activemq
+          chart-folder: deploy/helm/activemq
 
   publish:
     needs: [test, lint]
@@ -144,7 +144,7 @@ jobs:
           username: ${{ github.actor }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           force: true
-          chart-folder: activemq
+          chart-folder: deploy/helm/activemq
       
 
 
