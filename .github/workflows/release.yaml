@@ -71,7 +71,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v1
         with:
-          version: v3.4.0
+          version: v3.13.2
       
       - uses: actions/setup-python@v2
         with:
@@ -93,7 +93,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v1
         with:
-          version: v3.4.0
+          version: v3.13.2
       
       - uses: actions/setup-python@v2
         with:
@@ -122,15 +122,14 @@ jobs:
           cd deploy/helm
           sed -i -E 's/version:(.*)/version: \1-pr${{ github.event.pull_request.number }}/g' activemq/Chart.yaml
           sed -i -E 's/imageTag:(.*)/imageTag: pr-${{ github.event.pull_request.number }}/g' activemq/values.yaml
-        
-      - uses: goodsmileduck/helm-push-action@v3.3.1
-        env:
-          SOURCE_DIR: 'deploy/helm'
-          CHART_FOLDER: 'activemq'
-          FORCE: 'True'
-          CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
-          CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
-          CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
+      - uses: bsord/helm-push@v4.1.0
+        with:
+          useOCIRegistry: true
+          registry-url:  oci://ghcr.io/${{ github.repository }}
+          username: ${{ github.actor }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+          chart-folder: activemq
 
   publish:
     needs: [test, lint]
@@ -138,14 +137,14 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
-      - uses: goodsmileduck/helm-push-action@v3.3.1
-        env:
-          SOURCE_DIR: 'deploy/helm'
-          CHART_FOLDER: 'activemq'
-          FORCE: 'True'
-          CHARTMUSEUM_URL: 'https://charts.webcenter.fr'
-          CHARTMUSEUM_USER: '${{ secrets.CHARTMUSEUM_USER }}'
-          CHARTMUSEUM_PASSWORD: ${{ secrets.CHARTMUSEUM_PASSWORD }}
+      - uses: bsord/helm-push@v4.1.0
+        with:
+          useOCIRegistry: true
+          registry-url:  oci://ghcr.io/${{ github.repository }}
+          username: ${{ github.actor }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+          chart-folder: activemq
       
 
 
