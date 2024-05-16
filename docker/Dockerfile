@@ -1,4 +1,4 @@
-FROM redhat/ubi8-minimal:8.6
+FROM redhat/ubi8-minimal:8.9
 
 ARG http_proxy
 ARG https_proxy
@@ -7,7 +7,7 @@ ARG https_proxy
 
 # Application settings
 ENV \
-    ACTIVEMQ_VERSION=5.17.1 \
+    ACTIVEMQ_VERSION=6.1.2 \
     UID=1000 \
     GID=1000 \
     JAVA_HOME=/usr/lib/jvm/jre-17-openjdk
